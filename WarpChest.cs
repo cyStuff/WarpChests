@@ -32,10 +32,6 @@ namespace WarpChests
 
         //internal int iridiumSize = 0;
 
-        public static readonly string[] masterRequiredItems = { "Star Shards" };
-
-        public static readonly string[] slaveRequiredItems = { "Battery Pack" };
-
         public WarpChest(Chest chest, Color color, ModEntry m, bool main = false)
         {
             group = color;
@@ -93,7 +89,7 @@ namespace WarpChests
         public bool HasRequiredItems()
         {
             //DebugState();
-            foreach (string s in masterRequiredItems)
+            foreach (string s in mod.Config.MasterChestRequiredItems)
             {
                 if (!HasItemString(s)) { return false; }
             }
@@ -102,8 +98,8 @@ namespace WarpChests
 
         public bool SlaveCheckRequirements()
         {
-            if (container.items.Count != slaveRequiredItems.Length) { return false; }
-            foreach (string s in slaveRequiredItems)
+            if (container.items.Count != mod.Config.SubChestRequiredItems.Length) { return false; }
+            foreach (string s in mod.Config.SubChestRequiredItems)
             {
                 if (!HasItemString(s)) { return false; }
             }
@@ -114,7 +110,7 @@ namespace WarpChests
         {
             if (isMain) { return; }
             container.items.Clear();
-            foreach (string s in slaveRequiredItems)
+            foreach (string s in mod.Config.SubChestRequiredItems)
             {
                 AddItemString(s);
             }
@@ -190,7 +186,11 @@ namespace WarpChests
         internal bool HasItemString(string s)
         {
             //DebugState();
-            int i = mod.ja.GetObjectId(s);
+            int i = -1;
+            if (mod.ja != null)
+            {
+                i = mod.ja.GetObjectId(s);
+            }
             bool hasItem = false;
             if (i != -1)
             {
@@ -211,7 +211,11 @@ namespace WarpChests
 
         internal void AddItemString(string s)
         {
-            int i = mod.ja.GetObjectId(s);
+            int i = -1;
+            if (mod.ja != null)
+            {
+                mod.ja.GetObjectId(s);
+            }
             if (i == -1)
             {
                 i = GetGameIdFromString(s);
