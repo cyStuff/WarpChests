@@ -1,7 +1,7 @@
 ﻿{
   "Name": "WarpChests",
   "Author": "CyberCheese15",
-  "Version": "1.1.0",
+  "Version": "1.0.0",
   "Description": "Links Chests.",
   "UniqueID": "cybercheese.WarpChests",
   "EntryDLL": "WarpChests.dll",
