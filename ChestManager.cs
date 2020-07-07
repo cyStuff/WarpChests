@@ -17,12 +17,15 @@ namespace WarpChests
     {
         IList<WarpChest> chestList;
 
+        ModEntry mod;
+
         IMonitor Monitor;
 
 
-        public ChestManager(IMonitor monitor)
+        public ChestManager(ModEntry m)
         {
-            Monitor = monitor;
+            mod = m;
+            Monitor = m.Monitor;
             chestList = new List<WarpChest>();
         }
 
@@ -209,7 +212,7 @@ namespace WarpChests
             IEnumerable<Chest> chests = GetAllChests();
             foreach(Chest chest in chests)
             {
-                WarpChest wc = new WarpChest(chest, chest.playerChoiceColor, Monitor, true);
+                WarpChest wc = new WarpChest(chest, chest.playerChoiceColor, mod, true);
                 if (wc.MeetsRequirements()) { chestList.Add(wc); }
             }
             //DebugSearch();
@@ -221,9 +224,10 @@ namespace WarpChests
             {
                 foreach (WarpChest wc in chestList)
                 {
-                    if (wc.isMain && wc.container != chest && chest.playerChoiceColor == wc.group && WarpChest.SlaveCheckRequirements(chest))
+                    WarpChest nc = new WarpChest(chest, chest.playerChoiceColor, mod, true);
+                    if (wc.isMain && wc.container != nc.container && nc.group == wc.group && nc.SlaveCheckRequirements())
                     {
-                        slaveList.Add(new WarpChest(chest, chest.playerChoiceColor, Monitor));
+                        slaveList.Add(new WarpChest(chest, chest.playerChoiceColor, mod));
                     }
                 }
             }

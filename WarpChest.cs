@@ -18,6 +18,8 @@ namespace WarpChests
     {
         internal readonly IMonitor Monitor;
 
+        internal readonly ModEntry mod;
+
         internal readonly Color group;
 
         internal readonly Chest container;
@@ -30,15 +32,16 @@ namespace WarpChests
 
         //internal int iridiumSize = 0;
 
-        public static readonly int[] masterRequiredItems = { 578 };
+        public static readonly string[] masterRequiredItems = { "Star Shards" };
 
-        public static readonly int[] slaveRequiredItems = { 787 };
+        public static readonly string[] slaveRequiredItems = { "Battery Pack" };
 
-        public WarpChest(Chest chest, Color color, IMonitor mon, bool main = false)
+        public WarpChest(Chest chest, Color color, ModEntry m, bool main = false)
         {
             group = color;
             container = chest;
-            Monitor = mon;
+            mod = m;
+            Monitor = m.Monitor;
             isMain = main;
 
             state = new List<Item>();
@@ -63,7 +66,7 @@ namespace WarpChests
         {
             if (state.Count() != container.items.Count()) { return true; }
             //if (isMain && iridiumSize != iridium.Stack) { return true;  }
-            return !compareState();
+            return !CompareState();
             //bool changed = !state.SequenceEqual(container.items);
         }
 
@@ -89,25 +92,10 @@ namespace WarpChests
 
         public bool HasRequiredItems()
         {
-            foreach (int i in masterRequiredItems)
+            //DebugState();
+            foreach (string s in masterRequiredItems)
             {
-                bool hasItem = (from Item item in container.items
-                        where item.ParentSheetIndex == i
-                        select item).Count() > 0;
-                if (!hasItem) { return false; }
-            }
-            return true;
-        }
-
-        static public bool SlaveCheckRequirements(Chest chest)
-        {
-            if (chest.items.Count != slaveRequiredItems.Length) { return false; }
-            foreach (int i in slaveRequiredItems)
-            {
-                bool hasItem = (from Item item in chest.items
-                                where item.ParentSheetIndex == i
-                                select item).Count() > 0;
-                if (!hasItem) { return false; }
+                if (!HasItemString(s)) { return false; }
             }
             return true;
         }
@@ -115,12 +103,9 @@ namespace WarpChests
         public bool SlaveCheckRequirements()
         {
             if (container.items.Count != slaveRequiredItems.Length) { return false; }
-            foreach (int i in slaveRequiredItems)
+            foreach (string s in slaveRequiredItems)
             {
-                bool hasItem = (from Item item in container.items
-                                where item.ParentSheetIndex == i
-                                select item).Count() > 0;
-                if (!hasItem) { return false; }
+                if (!HasItemString(s)) { return false; }
             }
             return true;
         }
@@ -129,10 +114,9 @@ namespace WarpChests
         {
             if (isMain) { return; }
             container.items.Clear();
-            foreach (int i in slaveRequiredItems)
+            foreach (string s in slaveRequiredItems)
             {
-                Item toAdd = (Item)new StardewValley.Object(i, 1);
-                container.addItem(toAdd);
+                AddItemString(s);
             }
         }
 
@@ -166,7 +150,7 @@ namespace WarpChests
             return output;
         }
 
-        private bool compareState()
+        private bool CompareState()
         {
             foreach (var i in state.Zip(container.items, (a, b) => new { a, b }))
             {
@@ -202,6 +186,48 @@ namespace WarpChests
             }
             return false;
         }
+
+        internal bool HasItemString(string s)
+        {
+            //DebugState();
+            int i = mod.ja.GetObjectId(s);
+            bool hasItem = false;
+            if (i != -1)
+            {
+                hasItem = (from Item item in container.items
+                            where mod.ja.GetObjectId(item.ToString()) == i
+                            select item).Count() > 0;
+            }
+            else
+            {
+                i = GetGameIdFromString(s);
+                hasItem = (from Item item in container.items
+                            where item.parentSheetIndex == i
+                            select item).Count() > 0;
+            }
+            //Monitor.Log($"Finding item {s} with id {i} is {hasItem}.", LogLevel.Warn);
+            return hasItem;
+        }
+
+        internal void AddItemString(string s)
+        {
+            int i = mod.ja.GetObjectId(s);
+            if (i == -1)
+            {
+                i = GetGameIdFromString(s);
+            }
+            //Monitor.Log($"Adding item {s} with id {i}", LogLevel.Warn);
+            Item toAdd = (Item)new StardewValley.Object(i, 1);
+            container.addItem(toAdd);
+
+
+        }
+
+        static internal int GetGameIdFromString(string s)
+        {
+            return Game1.objectInformation.FirstOrDefault(x => x.Value.Split('/')[0] == s).Key;
+        }
+
         internal static bool ItemsEqual(Item i1, Item i2)
         {
             if (i1 is MeleeWeapon w1 && i2 is MeleeWeapon w2)
