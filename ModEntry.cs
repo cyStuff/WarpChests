@@ -1,18 +1,11 @@
-﻿using SpaceShared.APIs;
-using StardewModdingAPI;
+﻿using StardewModdingAPI;
 using StardewModdingAPI.Events;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace WarpChests
 {
     public class ModEntry : Mod
     {
-        internal JsonAssetsAPI ja = null;
+        internal IJsonAssetsApi ja = null;
 
         ChestManager Manager;
 
@@ -33,7 +26,7 @@ namespace WarpChests
 
         private void OnGameLaunched(object sender, GameLaunchedEventArgs e)
         {
-            var api = Helper.ModRegistry.GetApi<JsonAssetsAPI>("spacechase0.JsonAssets");
+            var api = Helper.ModRegistry.GetApi<IJsonAssetsApi> ("spacechase0.JsonAssets");
             if (api != null)
             {
                 ja = api;
